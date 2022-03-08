@@ -16,5 +16,5 @@ Gaussian filter module with row based fusion.
 ### Generate output figure.
   make run
 
-### Compariso with the golden pattern.
+### Comparison with the golden pattern.
   make check
