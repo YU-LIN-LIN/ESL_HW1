@@ -5,9 +5,9 @@
 https://github.com/YU-LIN-LIN/ESL_HW1
 
 ### General description or introduction of the problem and your solution
-	I use a row based data fashion in sending and receiving data. 
-	Reading original figure in a Row buffer, transmit data in fifo and wait for doing Gaussian fiterring. 
-	After filterring, store the filterred data back into the figure.
+	I use a row based data fashion in sending and receiving data.
+    Reading original figure in a Row buffer, transmit data in fifo and wait for doing Gaussian fiterring. 
+    After filterring, store the filterred data back into the figure.
 ### Implementation details
 	Declare three 3*256 unsigned char array(R, G, B repectively).
 	Use the remainder of 3 to determine which row should each pixel being stored in the buffer.
@@ -23,6 +23,10 @@ https://github.com/YU-LIN-LIN/ESL_HW1
 ### Experimental results
 	Total cycles : 256 + 256 * 256 * 10 = 655616
 ### Discussions and conclusions
+	The number of pixel transfer of the original way:
+	9*256*256-255*4(read) + 256*256(store after filterring) = 654336
+	The number of pixel transfer of the row based data transmission way:
+	256*256*2(read & store after filterring) = 65536
 	By row based data fusion, I created a buffer to store data instead of receiving pixels from memory every time. 
 	Although this may not benefit while software simulation, 
 	it could save much power in hard ware by reducing data access from memory directly.
