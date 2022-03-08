@@ -2,14 +2,19 @@
 
 Gaussian filter module with row based fusion.
 
-## Compile :
+## Compile 
 
-construct a new directory                         : mkdir build
+### Construct a new directory.
+  mkdir build
 
-go into the directory                             : cd build
+### Go into the directory. 
+  cd build
 
-read CMakeList.txt and visit the whole directory  : make
+### Read CMakeList.txt and visit the whole directory.
+  make
 
-generate output figure                            : make run
+### Generate output figure.
+  make run
 
-compariso with the golden pattern                 : make check
+### Compariso with the golden pattern.
+  make check
