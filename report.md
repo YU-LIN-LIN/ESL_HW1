@@ -26,7 +26,7 @@ https://github.com/YU-LIN-LIN/ESL_HW1
 	By row based data fusion, I created a buffer to store data instead of receiving pixels from memory every time. 
 	Although this may not benefit while software simulation, 
 	it could save much power in hard ware by reducing data access from memory directly.
-	I generated golden pattern from modifying lab2's code, Changing the filter array. 
+	I generated golden pattern from modifying lab2's code, changing the filter array. 
 	The test pattern is identical with the golden pattern after checking.
 
 
