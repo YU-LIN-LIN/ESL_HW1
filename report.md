@@ -6,33 +6,23 @@ https://github.com/YU-LIN-LIN/ESL_HW1
 
 ### General description or introduction of the problem and your solution
 	I use a row based data fashion in sending and receiving data.
-    Reading original figure in a Row buffer, transmit data in fifo and wait for doing Gaussian fiterring. 
-    After filterring, store the filterred data back into the figure.
+	Reading original figure and transmitting data row by row in fifo for doing Gaussian fiterring. 
+	After filterring, store the filterred data back into the figure row by row through buffer, too.
 ### Implementation details
-	Declare three 3*256 unsigned char array(R, G, B repectively).
-	Use the remainder of 3 to determine which row should each pixel being stored in the buffer.
-	Read original figure pixel by pixel and store them to the buffer.
-	The reading rate is 1 pixel/cycle. While reading at the 257th pixel ((1, 1) in the matrix), 
-	I can start do filterring from the first pixel((0, 0) in the matrix).
-	After reading finished, there are 257 remaining pixels not filterred yet. Using another for loop to finish it.	
+	In testbench, it just takes response for data reading and writing.
+	In kernel(GaussianFilter.cpp), doing Gaussian filterring(zero padding and convolution).
 ### Additional features of your design and models
-	In the beginning, I didn't wait for the buffer being full of reading pixels and then start to do filterring. 
-	I start to do filterring when the buffer get enough pixels (the 257th pixel). 
-	Therefore, compared to the method that read the first 3 rows over and started to do filterring, 
-	I saved 511 cycles if each 3*3 convolution needs 10 cycles to be done.
+	I used 3 buffers in 3 channels(R, G, B) in kernel. 
+	In the beginning, I read 3 rows of the original figure and send it to fifo to the buffer in the kernel. 
+	Then, I can do filterring at the first 2 rows, send them to fifo again and store them into the address of the original figure.
+	After that, Repeat the step that read 1 row, send to fifo, filterring in the kernel, send to fifo, store in the figure.
+	When the last row is read, there are 2 rows needed to be filterring. There is 1 extra row filterring in the end.
 ### Experimental results
-	Total cycles : 256 + 256 * 256 * 10 = 655616
+	Total cycles : 718102 cycles
 ### Discussions and conclusions
-	The number of pixel transfer of the original way:
-	9*256*256-255*4(read) + 256*256(store after filterring) = 654336
-	The number of pixel transfer of the row based data transmission way:
-	256*256*2(read & store after filterring) = 65536
-	By row based data fusion, I created a buffer to store data instead of receiving pixels from memory every time. 
-	Although this may not benefit while software simulation, 
-	it could save much power in hard ware by reducing data access from memory directly.
-	I generated golden pattern from modifying lab2's code, changing the sobel filter to gaussian filter. 
-	The test pattern is identical with the golden pattern after checking.
-
+	Considering the original method in lab2, every pixel needs to be readed and sent to fifo 9 times.
+	Compared of that, the row fusion data transmission makes each pixel need to be readed and sent to fifo 1 times.
+	There are 8 times * 256 pixels data transmission in fifo being saved.
 
 
 

@@ -121,185 +121,72 @@ int Testbench::write_bmp(string outfile_name) {
 }
 
 void Testbench::do_gaussian() {
-  int x, y, v, u;        // for loop counter
-  int row, col;          // out row and col counter
-  int cnt_257;
+  int x, y;        // for loop counter
   unsigned char R, G, B; // color of R, G, B
-  // int adjustX, adjustY, xBound, yBound;
-  // int total;
-  unsigned char matrix_R[3][256];
-  unsigned char matrix_G[3][256];
-  unsigned char matrix_B[3][256];
 
   o_rst.write(false);
   o_rst.write(true);
-  row = 0;
-  col = 0;
+
   // x, y : read pixel addr
-  for (y = 0; y != height; ++y) {
-    for (x = 0; x != width; ++x) {
-      if (y % 3 == 0) {
-        matrix_R[0][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 2);
-        matrix_G[0][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 1);
-        matrix_B[0][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 0);
-      } else if (y % 3 == 1) {
-        matrix_R[1][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 2);
-        matrix_G[1][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 1);
-        matrix_B[1][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 0);
-      } else {
-        matrix_R[2][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 2);
-        matrix_G[2][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 1);
-        matrix_B[2][x] = *(source_bitmap + bytes_per_pixel * (width * y + x) + 0);
-      }
-      wait(1);
+  // read first 3 rows' pixels
+  for (y = 0; y < 3; ++y) {
+    for (x = 0; x < width; ++x) {
+      R = *(source_bitmap + bytes_per_pixel * (width * y + x) + 2);
+      G = *(source_bitmap + bytes_per_pixel * (width * y + x) + 1);
+      B = *(source_bitmap + bytes_per_pixel * (width * y + x) + 0);
 
-// cout << "matrix_R = " << matrix_R[0][x] << endl;
-// cout << int(matrix_R[1][1]) << endl;
-
-      // When reading has done to (1, 1), can start to do conv.
-      if ((y * 256 + x) >= 257) {
-        for (v = -1; v <= 1; v++) {
-          for (u = -1; u <= 1; u++) {
-            // 0 padding & location of buffer storation judge
-            if ((row + v < 0) || (col + u < 0) || (row + v >= 256) || (col + u >= 256)) { 
-              R = 0;
-              G = 0;
-              B = 0;
-            } else if ((row % 3 == 0) && (v == -1)) {
-              R = matrix_R[2][col + u];
-              G = matrix_G[2][col + u];
-              B = matrix_B[2][col + u];
-            } else if ((row % 3 == 0) && (v == 0)) {
-              R = matrix_R[0][col + u];
-              G = matrix_G[0][col + u];
-              B = matrix_B[0][col + u];
-            } else if ((row % 3 == 0) && (v == 1)) {
-              R = matrix_R[1][col + u];
-              G = matrix_G[1][col + u];
-              B = matrix_B[1][col + u];
-            }
-             else if ((row % 3 == 1) && (v == -1)) {
-              R = matrix_R[0][col + u];
-              G = matrix_G[0][col + u];
-              B = matrix_B[0][col + u];
-            } else if ((row % 3 == 1) && (v == 0)) {
-              R = matrix_R[1][col + u];
-              G = matrix_G[1][col + u];
-              B = matrix_B[1][col + u];
-            } else if ((row % 3 == 1) && (v == 1)) {
-              R = matrix_R[2][col + u];
-              G = matrix_G[2][col + u];
-              B = matrix_B[2][col + u];
-            } else if ((row % 3 == 2) && (v == -1)) {
-              R = matrix_R[1][col + u];
-              G = matrix_G[1][col + u];
-              B = matrix_B[1][col + u];
-            } else if ((row % 3 == 2) && (v == 0)) {
-              R = matrix_R[2][col + u];
-              G = matrix_G[2][col + u];
-              B = matrix_B[2][col + u];
-            } else if ((row % 3 == 2) && (v == 1)) {
-              R = matrix_R[0][col + u];
-              G = matrix_G[0][col + u];
-              B = matrix_B[0][col + u];
-            }
-            
-            o_r.write(R);
-            o_g.write(G);
-            o_b.write(B);
-            wait(1); //emulate channel delay
-          }
-        }
-
-        // if ((y * 256 + x) >= 262) sc_stop();
-        // cout << "row = " << row << ", col = " << col << "over" << endl;
-
-        if(i_r_result.num_available()==0) wait(i_r_result.data_written_event());
-        if(i_g_result.num_available()==0) wait(i_g_result.data_written_event());
-        if(i_b_result.num_available()==0) wait(i_b_result.data_written_event());
-        *(target_bitmap + bytes_per_pixel * (width * row + col) + 2) = i_r_result.read();
-        *(target_bitmap + bytes_per_pixel * (width * row + col) + 1) = i_g_result.read();
-        *(target_bitmap + bytes_per_pixel * (width * row + col) + 0) = i_b_result.read();
-
-        col++;
-        if (col >= 256) {
-          col = 0;
-          row++;
-        } 
-      }
+      o_r.write(R);
+      o_g.write(G);
+      o_b.write(B);
+      wait(1); //emulate channel delay
     }
-    // cout << "store " << y << "row over" << endl;
-    // cout << "row = " << row << ", col = " << col << ", x = " << x << ", y = " << y << endl;
+    cout << "time_stamp_read : " << sc_time_stamp() << endl;
+  }
+  // write back the first 2 rows' pixels
+  for (y = 0; y < 2; ++y) {
+    for (x = 0; x < width; ++x) {
+      if(i_r_result.num_available()==0) wait(i_r_result.data_written_event());
+      if(i_g_result.num_available()==0) wait(i_g_result.data_written_event());
+      if(i_b_result.num_available()==0) wait(i_b_result.data_written_event());
+      *(target_bitmap + bytes_per_pixel * (width * y + x) + 2) = i_r_result.read();
+      *(target_bitmap + bytes_per_pixel * (width * y + x) + 1) = i_g_result.read();
+      *(target_bitmap + bytes_per_pixel * (width * y + x) + 0) = i_b_result.read();
+    }
+    cout << "time_stamp_write : " << sc_time_stamp() << endl;
+  }
+  // read & write
+  for (y = 3; y < height; ++y) {
+    for (x = 0; x < width; ++x) {
+      R = *(source_bitmap + bytes_per_pixel * (width * y + x) + 2);
+      G = *(source_bitmap + bytes_per_pixel * (width * y + x) + 1);
+      B = *(source_bitmap + bytes_per_pixel * (width * y + x) + 0);
+
+      o_r.write(R);
+      o_g.write(G);
+      o_b.write(B);
+      wait(1); //emulate channel delay
+    }
+    cout << "time_stamp_read : " << sc_time_stamp() << endl;
+    for (x = 0; x < width; ++x) {
+      if(i_r_result.num_available()==0) wait(i_r_result.data_written_event());
+      if(i_g_result.num_available()==0) wait(i_g_result.data_written_event());
+      if(i_b_result.num_available()==0) wait(i_b_result.data_written_event());
+      *(target_bitmap + bytes_per_pixel * (width * (y - 1) + x) + 2) = i_r_result.read();
+      *(target_bitmap + bytes_per_pixel * (width * (y - 1) + x) + 1) = i_g_result.read();
+      *(target_bitmap + bytes_per_pixel * (width * (y - 1) + x) + 0) = i_b_result.read();
+    }
+    cout << "time_stamp_write : " << sc_time_stamp() << endl;
   }
 
-  // remaining 257 pixels needed to do filtering
-  for (cnt_257 = 0; cnt_257 < 257; ++cnt_257) {
-    for (v = -1; v <= 1; ++v) {
-      for (u = -1; u <= 1; ++u) {
-        if ((row + v < 0) || (col + u < 0) || (row + v >= 256) || (col + u >= 256)) { 
-          R = 0;
-          G = 0;
-          B = 0;
-        } else if ((row % 3 == 0) && (v == -1)) {
-          R = matrix_R[2][col + u];
-          G = matrix_G[2][col + u];
-          B = matrix_B[2][col + u];
-        } else if ((row % 3 == 0) && (v == 0)) {
-          R = matrix_R[0][col + u];
-          G = matrix_G[0][col + u];
-          B = matrix_B[0][col + u];
-        } else if ((row % 3 == 0) && (v == 1)) {
-          R = matrix_R[1][col + u];
-          G = matrix_G[1][col + u];
-          B = matrix_B[1][col + u];
-        }
-          else if ((row % 3 == 1) && (v == -1)) {
-          R = matrix_R[0][col + u];
-          G = matrix_G[0][col + u];
-          B = matrix_B[0][col + u];
-        } else if ((row % 3 == 1) && (v == 0)) {
-          R = matrix_R[1][col + u];
-          G = matrix_G[1][col + u];
-          B = matrix_B[1][col + u];
-        } else if ((row % 3 == 1) && (v == 1)) {
-          R = matrix_R[2][col + u];
-          G = matrix_G[2][col + u];
-          B = matrix_B[2][col + u];
-        } else if ((row % 3 == 2) && (v == -1)) {
-          R = matrix_R[1][col + u];
-          G = matrix_G[1][col + u];
-          B = matrix_B[1][col + u];
-        } else if ((row % 3 == 2) && (v == 0)) {
-          R = matrix_R[2][col + u];
-          G = matrix_G[2][col + u];
-          B = matrix_B[2][col + u];
-        } else if ((row % 3 == 2) && (v == 1)) {
-          R = matrix_R[0][col + u];
-          G = matrix_G[0][col + u];
-          B = matrix_B[0][col + u];
-        }
-        o_r.write(R);
-        o_g.write(G);
-        o_b.write(B);
-        wait(1); //emulate channel delay
-      }
-    }
-    
-
-// cout << "row = " << row << ", col = " << col << " over, " << "cnt_257 = " << cnt_257 << endl;
-
+  // the last row write
+  for (x = 0; x < width; ++x) {
     if(i_r_result.num_available()==0) wait(i_r_result.data_written_event());
     if(i_g_result.num_available()==0) wait(i_g_result.data_written_event());
     if(i_b_result.num_available()==0) wait(i_b_result.data_written_event());
-    *(target_bitmap + bytes_per_pixel * (width * row + col) + 2) = i_r_result.read();
-    *(target_bitmap + bytes_per_pixel * (width * row + col) + 1) = i_g_result.read();
-    *(target_bitmap + bytes_per_pixel * (width * row + col) + 0) = i_b_result.read();
-  
-    col++;
-    if (col >= 256) {
-      col = 0;
-      row++;
-    } 
+
+    *(target_bitmap + bytes_per_pixel * (width * (255) + x) + 2) = i_r_result.read();
+    *(target_bitmap + bytes_per_pixel * (width * (255) + x) + 1) = i_g_result.read();
+    *(target_bitmap + bytes_per_pixel * (width * (255) + x) + 0) = i_b_result.read();
   }
   sc_stop();
 }
